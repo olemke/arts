@@ -29,7 +29,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-xenial-8
           packages:
-            - clang-format
+            - clang-format-8
       env:
         - NOCMAKE=1
         - NOCHECK=1
@@ -102,8 +102,11 @@ script:
   - if [[ -z ${NOCHECK} ]]; then
       make check;
     fi
+  - cd ..
   - if [[ ${CODECHECK} ]]; then
-      cd ..;
+      git fetch --unshallow;
+      git remote add upstream https://github.com/atmtools/arts.git;
+      git fetch upstream;
       ./tools/travis/check_clang_format.sh;
     fi
 
