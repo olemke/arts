@@ -21,6 +21,19 @@ matrix:
         - WITH_FORTRAN=0
         - TARGETDIRS="doc/uguide"
         - NOCHECK=1
+    - name: Check code formatting
+      dist: xenial
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-format
+      env:
+        - NOCMAKE=1
+        - NOCHECK=1
+        - CODECHECK=1
     - name: LLVM 8 w/o Fortran
       dist: xenial
       addons:
@@ -80,7 +93,17 @@ before_install:
 script:
   - mkdir -p build
   - cd build
-  - cmake -DENABLE_FORTRAN=${WITH_FORTRAN} -DTEST_JOBS=2 ..
-  - for TARGETDIR in ${TARGETDIRS}; do make -j2 -C ${TARGETDIR}; done
-  - if [[ -z ${NOCHECK} ]]; then make check; fi
+  - if [[ -z ${NOCMAKE} ]]; then
+      cmake -DENABLE_FORTRAN=${WITH_FORTRAN} -DTEST_JOBS=2 ..;
+    fi
+  - for TARGETDIR in ${TARGETDIRS}; do
+      make -j2 -C ${TARGETDIR};
+    done
+  - if [[ -z ${NOCHECK} ]]; then
+      make check;
+    fi
+  - if [[ ${CODECHECK} ]]; then
+      cd ..;
+      ./tools/travis/check_clang_format.sh;
+    fi
 
