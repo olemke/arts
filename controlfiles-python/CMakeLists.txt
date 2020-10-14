@@ -25,6 +25,8 @@ arts_test_run_pyfile(fast classes/TestXsecRecord.py)
 arts_test_run_pyfile(fast raw/calib.py)
 arts_test_run_pyfile(fast raw/corr.py)
 
+arts_test_run_pyfile(fast instruments/metmm/TestMetMM.py)
+
 if (ARTS_XML_DATA_DIR)
   arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)
   arts_test_run_pyfile(fast classes/TestCIARecord.py)
