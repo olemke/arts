@@ -30,6 +30,7 @@
 
 #include "array.h"
 #include "bifstream.h"
+#include "gridded_fields.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
@@ -45,6 +46,13 @@ class XsecRecord {
   /** Set species name */
   void SetSpecies(const Index species) { mspecies = species; };
 
+  /** Return species index */
+  Index Version() const { return mversion; };
+
+  /** Set species name */
+  void SetVersion(const Index version);
+
+  /************ VERSION 1 *************/
   /** Get coefficients */
   ConstVectorView Coeffs() const { return mcoeffs; };
 
@@ -107,13 +115,41 @@ class XsecRecord {
                const Index& apply_tfit,
                const Verbosity& verbosity) const;
 
-  friend void xml_read_from_stream(std::istream& is_xml,
-                                   XsecRecord& cr,
-                                   bifstream* pbifs,
-                                   const Verbosity& verbosity);
+  /************ VERSION 2 *************/
+  /** Get mininum pressures from fit */
+  const Vector& FitMinPressures() const { return mfitminpressures; };
+
+  /** Get maximum pressures from fit */
+  const Vector& FitMaxPressures() const { return mfitmaxpressures; };
+
+  /** Get mininum temperatures from fit */
+  const Vector& FitMinTemperatures() const { return mfitmintemperatures; };
+
+  /** Get maximum temperatures */
+  const Vector& FitMaxTemperatures() const { return mfitmaxtemperatures; };
+
+  /** Get coefficients */
+  const ArrayOfGriddedField2& FitCoeffs() const { return mfitcoeffs; };
+
+  /** Get mininum pressures from fit */
+  Vector& FitMinPressures() { return mfitminpressures; };
+
+  /** Get maximum pressures from fit */
+  Vector& FitMaxPressures() { return mfitmaxpressures; };
+
+  /** Get mininum temperatures from fit */
+  Vector& FitMinTemperatures() { return mfitmintemperatures; };
+
+  /** Get maximum temperatures */
+  Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
+
+  /** Get coefficients */
+  ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
  private:
+  Index mversion;
   Index mspecies;
+  /* VERSION 1 */
   Vector mcoeffs;
   Vector mrefpressure;
   Vector mreftemperature;
@@ -121,6 +157,12 @@ class XsecRecord {
   ArrayOfVector mxsecs;
   ArrayOfVector mtslope;
   ArrayOfVector mtintersect;
+  /* VERSION 2 */
+  Vector mfitminpressures;
+  Vector mfitmaxpressures;
+  Vector mfitmintemperatures;
+  Vector mfitmaxtemperatures;
+  ArrayOfGriddedField2 mfitcoeffs;
 };
 
 typedef Array<XsecRecord> ArrayOfXsecRecord;

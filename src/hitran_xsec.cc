@@ -148,6 +148,14 @@ void fftconvolve(VectorView& result,
 
 #endif /* ENABLE_FFTW */
 
+void XsecRecord::SetVersion(const Index version) {
+  if (version < 1 || version > 2) {
+    throw std::runtime_error("Invalid version, only 1/2 supported");
+  }
+
+  mversion = version;
+};
+
 void XsecRecord::Extract(VectorView result,
                          ConstVectorView f_grid,
                          const Numeric& pressure,
