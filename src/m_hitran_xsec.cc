@@ -28,19 +28,17 @@
 
 #include "absorption.h"
 #include "arts.h"
-#include "messages.h"
-
 #include "auto_md.h"
 #include "global_data.h"
 #include "hitran_xsec.h"
-#include "physics_funcs.h"
 #include "m_xml.h"
-
+#include "messages.h"
+#include "physics_funcs.h"
 
 extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReadXsecData(ArrayOfArrayOfGriddedField2& hitran_xsec_data,
+void ReadXsecData(ArrayOfXsecRecord& hitran_xsec_data,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const String& basename,
                   const Verbosity& verbosity) {
@@ -55,17 +53,16 @@ void ReadXsecData(ArrayOfArrayOfGriddedField2& hitran_xsec_data,
       }
     }
   }
-  
+
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
     tmpbasename += '.';
   }
-  
-  // Read catalogs for each identified species and put them all into
-  // abs_lines.
+
+  // Read xsec data for all active species and collect them in hitran_xsec_data
   hitran_xsec_data.clear();
   for (auto& species_name : unique_species) {
-    ArrayOfGriddedField2 xsec_coeffs;
+    XsecRecord xsec_coeffs;
     const String filename{tmpbasename + (species_data[species_name].Name()) +
                           ".xml"};
 
@@ -74,11 +71,11 @@ void ReadXsecData(ArrayOfArrayOfGriddedField2& hitran_xsec_data,
 
       hitran_xsec_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
-        std::ostringstream os;
-        os << "Error reading coefficients file:\n";
-        os << filename << "\n";
-        os << e.what();
-        throw std::runtime_error(os.str());
+      std::ostringstream os;
+      os << "Error reading coefficients file:\n";
+      os << filename << "\n";
+      os << e.what();
+      throw std::runtime_error(os.str());
     }
   }
 }
@@ -94,7 +91,7 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
     const Vector& f_grid,
     const Vector& abs_p,
     const Vector& abs_t,
-    const ArrayOfArrayOfGriddedField2& hitran_xsec_data,
+    const ArrayOfXsecRecord& hitran_xsec_data,
     const Index& apply_tfit,
     const Numeric& force_p,
     const Numeric& force_t,
@@ -188,7 +185,7 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
       // Check if this is a HITRAN cross section tag
       if (this_species.Type() != SpeciesTag::TYPE_HITRAN_XSEC) continue;
 
-/*      Index this_xdata_index =
+      Index this_xdata_index =
           hitran_xsec_get_index(hitran_xsec_data, this_species.Species());
       if (this_xdata_index < 0) {
         ostringstream os;
@@ -246,7 +243,8 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
               if (is_frequency_parameter(jacobian_quantities[jac_pos[iq]]))
                 this_dxsec[iq](iv, ip) +=
                     (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[jac_pos[iq]] == Jacobian::Line::VMR) {
+              else if (jacobian_quantities[jac_pos[iq]] ==
+                       Jacobian::Line::VMR) {
                 if (species_match(jacobian_quantities[jac_pos[iq]],
                                   abs_species[i])) {
                   this_dxsec[iq](iv, ip) += xsec_temp[iv];
@@ -255,7 +253,7 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
             }
           }
         }
-      }*/
+      }
     }
   }
 
@@ -268,7 +266,6 @@ void abs_xsec_per_speciesAddHitranXsec2(  // WS Output:
     throw std::runtime_error(os.str());
   }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
@@ -429,7 +426,8 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
               if (is_frequency_parameter(jacobian_quantities[jac_pos[iq]]))
                 this_dxsec[iq](iv, ip) +=
                     (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              else if (jacobian_quantities[jac_pos[iq]] == Jacobian::Line::VMR) {
+              else if (jacobian_quantities[jac_pos[iq]] ==
+                       Jacobian::Line::VMR) {
                 if (species_match(jacobian_quantities[jac_pos[iq]],
                                   abs_species[i])) {
                   this_dxsec[iq](iv, ip) += xsec_temp[iv];

@@ -14355,7 +14355,7 @@ void define_md_data_raw() {
                   "Reads coefficient files for HITRAN Xsec species defined\n"
                   "in *abs_species*.\n"),
       AUTHORS("Oliver Lemke"),
-      OUT("hitran_xsec_data2"),
+      OUT("hitran_xsec_data"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

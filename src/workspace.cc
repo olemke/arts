@@ -1837,11 +1837,6 @@ void Workspace::define_wsv_data() {
                 DESCRIPTION("Data for Hitran cross section species.\n"),
                 GROUP("ArrayOfXsecRecord")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("hitran_xsec_data2"),
-                DESCRIPTION("Data for Hitran cross section species.\n"),
-                GROUP("ArrayOfArrayOfGriddedField2")));
-
   wsv_data.push_back(WsvRecord(
       NAME("instrument_pol"),
       DESCRIPTION(

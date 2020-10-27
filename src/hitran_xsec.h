@@ -26,9 +26,8 @@
 #ifndef HITRAN_XSEC_H
 #define HITRAN_XSEC_H
 
-#include "arts.h"
-
 #include "array.h"
+#include "arts.h"
 #include "bifstream.h"
 #include "gridded_fields.h"
 #include "matpackI.h"
@@ -73,25 +72,25 @@ class XsecRecord {
 
   /** Get intersect of temperature fit */
   const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
-  
+
   /** Get coefficients */
   Vector& Coeffs() { return mcoeffs; };
-  
+
   /** Get reference pressures */
   Vector& RefPressure() { return mrefpressure; };
-  
+
   /** Get reference temperatures */
   Vector& RefTemperature() { return mreftemperature; };
-  
+
   /** Get frequency grids of cross sections */
   ArrayOfVector& Fgrids() { return mfgrids; };
-  
+
   /** Get cross sections */
   ArrayOfVector& Xsecs() { return mxsecs; };
-  
+
   /** Get slope of temperature fit */
   ArrayOfVector& TemperatureSlope() { return mtslope; };
-  
+
   /** Get intersect of temperature fit */
   ArrayOfVector& TemperatureIntersect() { return mtintersect; };
 
@@ -147,6 +146,20 @@ class XsecRecord {
   ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
 
  private:
+  void Extract1(VectorView result,
+                ConstVectorView f_grid,
+                const Numeric& pressure,
+                const Numeric& temperature,
+                const Index& apply_tfit,
+                const Verbosity& verbosity) const;
+
+  void Extract2(VectorView result,
+                ConstVectorView f_grid,
+                const Numeric pressure,
+                const Numeric temperature,
+                const Index apply_tfit,
+                const Verbosity& verbosity) const;
+
   Index mversion;
   Index mspecies;
   /* VERSION 1 */
