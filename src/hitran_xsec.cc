@@ -361,7 +361,7 @@ void XsecRecord::Extract2(VectorView result,
 
   const Index ndatasets = mfitcoeffs.nelem();
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
-    const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(1);
+    const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
     const Numeric fmin = data_f_grid[0];
     const Numeric fmax = data_f_grid[data_f_grid.nelem() - 1];
     const Index data_nf = data_f_grid.nelem();
@@ -433,7 +433,7 @@ void XsecRecord::Extract2(VectorView result,
     // interpolation.
     Range active_range(i_data_fstart, data_f_extent);
     const ConstMatrixView coeffs_active =
-        mfitcoeffs[this_dataset_i].data(joker, active_range);
+        mfitcoeffs[this_dataset_i].data(active_range, joker);
 
     Vector fit_result(data_f_extent);
 
@@ -453,7 +453,7 @@ void XsecRecord::Extract2(VectorView result,
         pressure > fitminpressure ? log10(pressure) : log10(fitminpressure);
 
     for (Index i = i_data_fstart; i <= i_data_fstop; i++) {
-      const ConstVectorView these_coeffs = coeffs_active(joker, i);
+      const ConstVectorView these_coeffs = coeffs_active(i, joker);
       fit_result[i] =
           these_coeffs[P00] + these_coeffs[P10] * active_temperature +
           these_coeffs[P01] * active_pressure +
