@@ -165,7 +165,7 @@ void XsecRecord::Extract(VectorView result,
   if (mversion == 1) {
     Extract1(result, f_grid, pressure, temperature, apply_tfit, verbosity);
   } else if (mversion == 2) {
-    Extract2(result, f_grid, pressure, temperature, apply_tfit, verbosity);
+    Extract2(result, f_grid, pressure, temperature, verbosity);
   } else {
     throw std::runtime_error("Unsupported XsecRecord version");
   }
@@ -348,7 +348,6 @@ void XsecRecord::Extract2(VectorView result,
                           ConstVectorView f_grid,
                           const Numeric pressure,
                           const Numeric temperature,
-                          const Index apply_tfit,
                           const Verbosity& verbosity) const {
   CREATE_OUTS;
 
@@ -453,43 +452,15 @@ void XsecRecord::Extract2(VectorView result,
     const Numeric active_pressure =
         pressure > fitminpressure ? log10(pressure) : log10(fitminpressure);
 
-    if (1) {
-      for (Index i = i_data_fstart; i <= i_data_fstop; i++) {
-        const ConstVectorView these_coeffs = coeffs_active(joker, i);
-        fit_result[i] =
-            these_coeffs[P00] + these_coeffs[P10] * active_temperature +
-            these_coeffs[P01] * active_pressure +
-            these_coeffs[P20] * active_temperature * active_temperature +
-            these_coeffs[P11] * active_temperature * active_pressure +
-            these_coeffs[P02] * active_pressure * active_pressure;
-        fit_result[i] *= fit_result[i];
-      }
-    } else {
-      Vector term;
-      // Retrieve crosssections from fit coefficients
-      fit_result = coeffs_active(P00, joker);
-
-      term = coeffs_active(P10, joker);
-      term *= active_temperature;
-      fit_result += term;
-
-      term = coeffs_active(P01, joker);
-      term *= active_pressure;
-      fit_result += term;
-
-      term = coeffs_active(P20, joker);
-      term *= active_temperature * active_temperature;
-      fit_result += term;
-
-      term = coeffs_active(P11, joker);
-      term *= active_temperature * active_pressure;
-      fit_result += term;
-
-      term = coeffs_active(P02, joker);
-      term *= active_pressure * active_pressure;
-      fit_result += term;
-
-      fit_result *= fit_result;
+    for (Index i = i_data_fstart; i <= i_data_fstop; i++) {
+      const ConstVectorView these_coeffs = coeffs_active(joker, i);
+      fit_result[i] =
+          these_coeffs[P00] + these_coeffs[P10] * active_temperature +
+          these_coeffs[P01] * active_pressure +
+          these_coeffs[P20] * active_temperature * active_temperature +
+          these_coeffs[P11] * active_temperature * active_pressure +
+          these_coeffs[P02] * active_pressure * active_pressure;
+      fit_result[i] *= fit_result[i];
     }
 
     // Decide on interpolation orders:

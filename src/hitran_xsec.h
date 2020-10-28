@@ -157,7 +157,6 @@ class XsecRecord {
                 ConstVectorView f_grid,
                 const Numeric pressure,
                 const Numeric temperature,
-                const Index apply_tfit,
                 const Verbosity& verbosity) const;
 
   Index mversion;
