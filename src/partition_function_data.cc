@@ -1703,15 +1703,14 @@ void define_partition_species_data() {
   next_species(it_species, it_isotopologue, "particles");
 
   // hitran cross section species: skip iso setting
-  for (const auto& s : {
-           "C2F6",     "C3F8",      "C4F10",     "C5F12",     "C6F14",
-           "C8F18",    "cC4F8",     "CCl4",      "CFC11",     "CFC113",
-           "CFC114",   "CFC115",    "CFC12",     "CH2Cl2",    "CH3CCl3",
-           "CHCl3",    "Halon1211", "Halon1301", "Halon2402", "HCFC141b",
-           "HCFC142b", "HCFC22",    "HFC125",    "HFC134a",   "HFC143a",
-           "HFC152a",  "HFC227ea",  "HFC23",     "HFC245fa",  "HFC32",
-           "NF3",      "SO2F2",     "HFC4310mee"
-       }) {
+  for (const auto& s :
+       {"C2F6",     "C3F8",      "C4F10",     "C5F12",     "C6F14",
+        "C8F18",    "cC4F8",     "CCl4",      "CFC11",     "CFC113",
+        "CFC114",   "CFC115",    "CFC12",     "CH2Cl2",    "CH3CCl3",
+        "CHCl3",    "Halon1211", "Halon1301", "Halon2402", "HCFC141b",
+        "HCFC142b", "HCFC22",    "HFC125",    "HFC134a",   "HFC143a",
+        "HFC152a",  "HFC227ea",  "HFC23",     "HFC236fa",  "HFC245fa",
+        "HFC32",    "HFC365mfc", "NF3",       "SO2F2",     "HFC4310mee"}) {
     next_species(it_species, it_isotopologue, s);
   }
 
