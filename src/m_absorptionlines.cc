@@ -940,12 +940,14 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   // Read catalogs for each identified species and put them all into
   // abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
-  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+  std::vector<Index> unique_species_v;
+  unique_species_v.assign(unique_species.begin(), unique_species.end());
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               species_data[*it].Isotopologue().nelem() > 1)
-    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
+                                               unique_species_v.size() > 1)
+  for (size_t it = 0; it < unique_species_v.size(); it++) {
+    for (Index k=0; k<species_data[unique_species_v[it]].Isotopologue().nelem(); k++) {
       String filename;
-      filename = tmpbasename + species_data[*it].FullName(k) + ".xml";
+      filename = tmpbasename + species_data[unique_species_v[it]].FullName(k) + ".xml";
       if (find_xml_file_existence(filename)) {
         ArrayOfAbsorptionLines speclines;
         xml_read_from_file(filename, speclines, verbosity);
