@@ -941,6 +941,8 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   // abs_lines
   ArrayOfAbsorptionLines abs_lines(0);
   for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
+                                               species_data[*it].Isotopologue().nelem() > 1)
     for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
       String filename;
       filename = tmpbasename + species_data[*it].FullName(k) + ".xml";
@@ -948,6 +950,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
         ArrayOfAbsorptionLines speclines;
         xml_read_from_file(filename, speclines, verbosity);
         for (auto& band: speclines) {
+#pragma omp critical(abs_lines_per_speciesReadSpeciesSplitCatalog)
           abs_lines.push_back(band);
           bands_found++;
         }
