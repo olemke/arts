@@ -919,6 +919,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
 {
   using global_data::species_data;
   
+  CREATE_OUT0;
   CREATE_OUT3;
   std::size_t bands_found{0};
   
@@ -939,33 +940,65 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
   
   // Read catalogs for each identified species and put them all into
   // abs_lines
+  bool fail{false};
+  ArrayOfString fail_msg;
   ArrayOfAbsorptionLines abs_lines(0);
   std::vector<Index> unique_species_v;
   unique_species_v.assign(unique_species.begin(), unique_species.end());
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
                                                unique_species_v.size() > 1)
   for (size_t it = 0; it < unique_species_v.size(); it++) {
-    for (Index k=0; k<species_data[unique_species_v[it]].Isotopologue().nelem(); k++) {
+#pragma omp parallel for schedule(                                           \
+    dynamic) if (!arts_omp_in_parallel() &&                                  \
+                 species_data[unique_species_v[it]].Isotopologue().nelem() > \
+                     1)
+    for (Index k = 0;
+         k < species_data[unique_species_v[it]].Isotopologue().nelem();
+         k++) {
       String filename;
-      filename = tmpbasename + species_data[unique_species_v[it]].FullName(k) + ".xml";
-      if (find_xml_file_existence(filename)) {
-        ArrayOfAbsorptionLines speclines;
-        xml_read_from_file(filename, speclines, verbosity);
-        for (auto& band: speclines) {
+      try {
+        filename = tmpbasename +
+                   species_data[unique_species_v[it]].FullName(k) + ".xml";
+        if (find_xml_file_existence(filename)) {
+          ArrayOfAbsorptionLines speclines;
+          xml_read_from_file(filename, speclines, verbosity);
 #pragma omp critical(abs_lines_per_speciesReadSpeciesSplitCatalog)
-          abs_lines.push_back(band);
-          bands_found++;
+          for (auto& band : speclines) {
+            abs_lines.push_back(std::move(band));
+            bands_found++;
+          }
         }
+      } catch (const std::exception& e) {
+        fail = true;
+#pragma omp critical(abs_lines_per_speciesReadSpeciesSplitCatalog)
+        fail_msg.push_back(e.what());
       }
     }
   }
-  
+
+  if (fail_msg.nelem()) {
+    ostringstream os;
+
+    if (fail) os << "\nErrors occured during catalog reading:\n";
+    for (ArrayOfString::const_iterator it = fail_msg.begin();
+         it != fail_msg.end();
+         it++)
+      os << *it << '\n';
+
+    if (!robust)
+      throw runtime_error(os.str());
+    else
+      out0 << os.str();
+  }
+
   if (not bands_found and not robust)
-    throw std::runtime_error("Cannot find any bands in the directory you are reading");
+    throw std::runtime_error(
+        "Cannot find any bands in the directory you are reading");
   else
     out3 << "Found " << bands_found << " bands\n";
-  
-  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+
+  abs_lines_per_speciesCreateFromLines(
+      abs_lines_per_species, abs_lines, abs_species, verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
