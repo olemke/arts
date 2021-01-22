@@ -342,6 +342,24 @@ void Linefunctions::set_voigt(
   // Line shape
   F.noalias() = fac * z.unaryExpr(&w);
 
+  // DEBUGOLE
+  bool foundinf = false;
+  for (Index k = 0; k < F.real().rows(); k++) {
+    if (std::isinf(F.real()[k])) {
+      std::cout << k << "@" << std::setprecision(5) << f_grid[k]/1e9 << " ";
+      foundinf = true;
+    }
+  }
+  if (foundinf) {
+    std::cout << std::endl
+              << "^^^ Indexes and frequencies [Ghz] in f_grid of INF values"
+              << std::endl;
+    std::cout << "F0 of failed line: " << std::setprecision(16) << F0_noshift
+              << std::endl;
+    std::cout << "Species of failed line: " << band.SpeciesName() << std::endl
+              << std::endl;
+  }
+
   if (nppd) {
     dw.noalias() = 2 * (Complex(0, fac * Constant::inv_sqrt_pi) -
                         z.cwiseProduct(F).array())
