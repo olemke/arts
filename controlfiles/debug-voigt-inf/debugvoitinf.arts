@@ -1,0 +1,121 @@
+Arts2 {
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# (standard) emission calculation
+Copy(iy_main_agenda, iy_main_agenda__Emission)
+
+# cosmic background radiation
+Copy(iy_space_agenda, iy_space_agenda__CosmicBackground)
+
+# standard surface agenda (i.e., make use of surface_rtprop_agenda)
+Copy(iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop)
+
+# on-the-fly absorption
+#Copy(propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly)
+Copy(propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable)
+
+# sensor-only path
+Copy(ppath_agenda, ppath_agenda__FollowSensorLosPath)
+
+# no refraction
+Copy(ppath_step_agenda, ppath_step_agenda__GeometricPath)
+
+# Number of Stokes components to be computed
+IndexSet(stokes_dim, 1)
+
+# No jacobian calculation
+jacobianOff
+
+# Clearsky = No scattering
+cloudboxOff
+
+# Definition of species
+abs_speciesSet(
+	species=[
+		#"H2O"
+		"H2O-161, H2O-162, H2O-171, H2O-172, H2O-181, H2O-182"
+		#"H2O-161, H2O-162, H2O-171, H2O-172, H2O-181, H2O-182"
+		#"H2O,H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+		#"CO2, CO2-CKDMT252"
+	]
+)
+
+# Read line catalog
+abs_lines_per_speciesReadSpeciesSplitCatalog(
+   basename="spectroscopy/cat/"
+)
+
+abs_lines_per_speciesSetLineShapeType(option="VP")
+abs_lines_per_speciesSetCutoff(option="ByLine", value=750e9)
+#abs_lines_per_speciesSetNormalization(option="VVH")
+
+# Create a frequency grid
+VectorNLinSpace(f_grid, 100, 1e9, 2e9)
+
+# Throw away lines outside f_grid
+abs_lines_per_speciesCompact
+
+# Weakly reflecting surface
+VectorSetConstant(surface_scalar_reflectivity, 1, 0.0)
+Copy(
+	surface_rtprop_agenda,
+	surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface
+)
+
+# No sensor properties
+sensorOff
+
+# Atmosphere and surface
+ReadXML(atm_fields_compact, "input/midlatitude-summer.xml")
+AtmosphereSet1D
+AtmFieldsAndParticleBulkPropFieldFromCompact
+
+# Set surface height and temperature equal to the lowest atmosphere level
+Extract(z_surface, z_field, 0)
+Extract(t_surface, t_field, 0)
+
+# Output radiance not converted
+StringSet(iy_unit, "1")
+
+# Definition of sensor position and LOS
+MatrixSet(sensor_pos, [100e3])  # sensor in z = 100 km
+MatrixSet(
+	sensor_los, [180]
+)  # zenith angle: 0 looking up, 180 looking down
+
+# Perform RT calculations
+abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc(bad_partition_functions_ok=0)
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+
+abs_lookupSetup
+abs_lookupCalc
+WriteXML("ascii", abs_lookup)
+yCalc
+
+Exit
+
+# Original code instead of yCalc
+# calculate intensity field
+AngularGridsSetFluxCalc(
+	N_za_grid=2, N_aa_grid=1, za_grid_type="double_gauss"
+)
+
+Tensor3Create(trans_field)
+spectral_radiance_fieldClearskyPlaneParallel(
+	trans_field=trans_field, use_parallel_za=0
+)
+WriteXML("ascii", f_grid)
+WriteXML("ascii", spectral_radiance_field)
+}
+
