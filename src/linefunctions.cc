@@ -325,73 +325,74 @@ void Linefunctions::set_voigt(
 
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + lso.D0 + lso.DV;
-  const Numeric GD = GD_div_F0 * F0;
-  const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dT.D0 + dT.DV);
 
-  // constant normalization factor for Voigt
-  const Numeric fac = Constant::inv_sqrt_pi * invGD;
+  /* Use Lorentz if the shifted line center has a
+   * different sign than the original line center */
+  if (std::signbit(F0) not_eq std::signbit(F0_noshift)) {
+    set_lorentz(F,
+                dF,
+                data,
+                f_grid,
+                zeeman_df,
+                magnetic_magnitude,
+                F0_noshift,
+                lso, band,
+                line_ind,
+                derivatives_data,
+                derivatives_data_position,
+                dT,
+                dVMR);
+  } else {
+    const Numeric GD = GD_div_F0 * F0;
+    const Numeric invGD = 1.0 / GD;
+    const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dT.D0 + dT.DV);
 
-  // Naming req data blocks
-  auto z = data.col(0);
-  auto dw = data.col(1);
+    // constant normalization factor for Voigt
+    const Numeric fac = Constant::inv_sqrt_pi * invGD;
 
-  // Frequency grid
-  z.noalias() = invGD * (Complex(-F0, lso.G0) + f_grid.array()).matrix();
+    // Naming req data blocks
+    auto z = data.col(0);
+    auto dw = data.col(1);
 
-  // Line shape
-  F.noalias() = fac * z.unaryExpr(&w);
+    // Frequency grid
+    z.noalias() = invGD * (Complex(-F0, lso.G0) + f_grid.array()).matrix();
 
-  // DEBUGOLE
-  bool foundinf = false;
-  for (Index k = 0; k < F.real().rows(); k++) {
-    if (std::isinf(F.real()[k])) {
-      std::cout << k << "@" << std::setprecision(5) << f_grid[k]/1e9 << " ";
-      foundinf = true;
-    }
-  }
-  if (foundinf) {
-    std::cout << std::endl
-              << "^^^ Indexes and frequencies [Ghz] in f_grid of INF values"
-              << std::endl;
-    std::cout << "F0 of failed line: " << std::setprecision(16) << F0_noshift
-              << std::endl;
-    std::cout << "Species of failed line: " << band.SpeciesName() << std::endl
-              << std::endl;
-  }
+    // Line shape
+    F.noalias() = fac * z.unaryExpr(&w);
 
-  if (nppd) {
-    dw.noalias() = 2 * (Complex(0, fac * Constant::inv_sqrt_pi) -
-                        z.cwiseProduct(F).array())
-                           .matrix();
+    if (nppd) {
+      dw.noalias() = 2 * (Complex(0, fac * Constant::inv_sqrt_pi) -
+                          z.cwiseProduct(F).array())
+                            .matrix();
 
-    for (auto iq = 0; iq < nppd; iq++) {
-      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      for (auto iq = 0; iq < nppd; iq++) {
+        const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-      if (is_frequency_parameter(deriv))
-        dF.col(iq).noalias() = invGD * dw;
-      else if (deriv == Jacobian::Atm::Temperature)
-        dF.col(iq).noalias() =
-            dw * Complex(-dT.D0 - dT.DV, dT.G0) * invGD -
-            F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
-      else if ((deriv == Jacobian::Line::Center or
-                is_pressure_broadening_DV(deriv)) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = -F / F0 - dw * invGD - dw.cwiseProduct(z) / F0;
-      else if (is_pressure_broadening_G0(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = iz * dw * invGD;
-      else if (is_pressure_broadening_D0(deriv) and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() = -dw * invGD;
-      else if (is_magnetic_parameter(deriv))
-        dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
-      else if (deriv == Jacobian::Line::VMR and
-               Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
-        dF.col(iq).noalias() =
-            dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
-      else
-        dF.col(iq).setZero();
+        if (is_frequency_parameter(deriv))
+          dF.col(iq).noalias() = invGD * dw;
+        else if (deriv == Jacobian::Atm::Temperature)
+          dF.col(iq).noalias() =
+              dw * Complex(-dT.D0 - dT.DV, dT.G0) * invGD -
+              F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
+        else if ((deriv == Jacobian::Line::Center or
+                  is_pressure_broadening_DV(deriv)) and
+                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
+          dF.col(iq).noalias() = -F / F0 - dw * invGD - dw.cwiseProduct(z) / F0;
+        else if (is_pressure_broadening_G0(deriv) and
+                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
+          dF.col(iq).noalias() = iz * dw * invGD;
+        else if (is_pressure_broadening_D0(deriv) and
+                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
+          dF.col(iq).noalias() = -dw * invGD;
+        else if (is_magnetic_parameter(deriv))
+          dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
+        else if (deriv == Jacobian::Line::VMR and
+                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
+          dF.col(iq).noalias() =
+              dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
+        else
+          dF.col(iq).setZero();
+      }
     }
   }
 }
