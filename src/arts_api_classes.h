@@ -780,13 +780,6 @@ extern "C" {
     // XsecRecord
     BasicInterfaceCAPI(XsecRecord)
     BasicInputOutputCAPI(XsecRecord)
-    VoidGetterCAPI(XsecRecord, Coeffs)
-    VoidGetterCAPI(XsecRecord, RefPressure)
-    VoidGetterCAPI(XsecRecord, RefTemperature)
-    VoidGetterCAPI(XsecRecord, Fgrids)
-    VoidGetterCAPI(XsecRecord, Xsecs)
-    VoidGetterCAPI(XsecRecord, TemperatureSlope)
-    VoidGetterCAPI(XsecRecord, TemperatureIntersect)
     VoidGetterCAPI(XsecRecord, FitMinPressures)
     VoidGetterCAPI(XsecRecord, FitMaxPressures)
     VoidGetterCAPI(XsecRecord, FitMinTemperatures)
