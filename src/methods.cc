@@ -257,13 +257,14 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataAddCIARecord"),
-      DESCRIPTION(
-          "Takes CIARecord as input and appends the results in the appropriate place.\n"
-          "\n"
-          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
-          "position is used to append all of the CIARecord into the array.  If clobber\n"
-          "evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If\n"
-          "species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.\n"),
+      DESCRIPTION(R"(
+Takes CIARecord as input and appends the results in the appropriate place.
+
+If CIARecord has same species as species in *abs_cia_data*, then the array
+position is used to append all of the CIARecord into the array.  If clobber
+evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If
+species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.
+)"),
       AUTHORS("Richard Larsson"),
       OUT("abs_cia_data"),
       GOUT(),
@@ -371,23 +372,24 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
-      DESCRIPTION("Reads HITRAN line mixing data from a basedir\n"
-        "The basedir must point at line mixing data as provided by HITRAN.\n"
-        "The lines will be changed such that ALL CO2 lines are truncated\n"
-        "before adding the HITRAN line mixing lines.\n"
-        "\n"
-        "The available modes are such that \"VP*\" uses Voigt profiles and\n"
-        "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
-        "signifies if Rosenkranz-style line mixing is considered or not, and\n"
-        "the \"W\" at the end signifies that full calculations are used.  At\n"
-        "the line mixing limit, line mixing is simply turned off.\n"
-        "\n"
-        "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
-        "matrix until the line mixing limit is reached and it switches to Voigt.\n"
-        "\n"
-        "The HITRAN LM data is available for download at:\n"
-        "https://hitran.org/supplementary/\n"
-      ),
+      DESCRIPTION(R"(
+Reads HITRAN line mixing data from a basedir
+The basedir must point at line mixing data as provided by HITRAN.
+The lines will be changed such that ALL CO2 lines are truncated
+before adding the HITRAN line mixing lines.
+
+The available modes are such that "VP*" uses Voigt profiles and
+"SDVP*" uses speed-dependent Voigt profiles, where the "_Y"
+signifies if Rosenkranz-style line mixing is considered or not, and
+the "W" at the end signifies that full calculations are used.  At
+the line mixing limit, line mixing is simply turned off.
+
+The "FullW" mode uses Lorentzian calculations with the full relaxation
+matrix until the line mixing limit is reached and it switches to Voigt.
+
+The HITRAN LM data is available for download at:
+https://hitran.org/supplementary/
+)"),
       AUTHORS("Richard Larsson"),
       OUT("abs_hitran_relmat_data", "abs_lines_per_species"),
       GOUT(),
