@@ -6,7 +6,7 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +20,7 @@ jobs:
           ubuntu-clang-14-nofortran,
           macos-gcc-11,
           macos-clang-13,
+          windows-msys2-gcc,
         ]
 
         include:
@@ -127,10 +128,38 @@ jobs:
             libcxx: "no"
             buildtype: "Release"
 
+          - name: windows-msys2-gcc
+            os: windows-latest
+            msystem: "MINGW64"
+            install: mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-gcc mingw-w64-x86_64-openblas
+            compiler: gcc
+            doc: "no"
+            arts: "yes"
+            fortran: "no"
+            check: "yes"
+            libcxx: "no"
+            buildtype: "Release"
+
+    env:
+      CMAKE_GENERATOR: Ninja
+
     steps:
       - uses: actions/checkout@v1
         with:
           fetch-depth: 10
+
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          update: true
+          msystem: ${{ matrix.msystem }}
+          install: ${{ matrix.install }}
+
+      - name: Set up Python (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
 
       - name: Setup (Linux)
         if: runner.os == 'Linux'
@@ -166,7 +195,7 @@ jobs:
             sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
             echo "CXXFLAGS=-stdlib=libc++" >> $GITHUB_ENV
           fi
-          sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev
+          sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libfftw3-dev ninja-build
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
@@ -179,6 +208,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew upgrade python
+          brew install ninja
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
@@ -202,8 +232,21 @@ jobs:
             echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
+      - name: Setup (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          python3 -m pip install docutils lark-parser matplotlib netCDF4 numpy pytest scipy xarray
+
       - name: Configure (Linux / macOS)
         if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: |
+          mkdir cmake-build
+          cd cmake-build
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DENABLE_PCH=1 -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1 -DNUM_PYARTS_WSC=1 -DNUM_PYARTS_WSG=1 -DENABLE_FORTRAN=$USEFORTRAN ..
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
         run: |
           mkdir cmake-build
           cd cmake-build
@@ -213,31 +256,55 @@ jobs:
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j2 -C 3rdparty
-          make -j2 arts
-          make -j1 pyarts_cpp
-          make -j2 -C src
+          cmake --build . -j2 --target 3rdparty/all
+          cmake --build . -j2 --target arts
+          cmake --build . -j1 --target pyarts_cpp
+          cmake --build . -j2 --target src/all
 
-      - name: Docs (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
+      - name: Build (Windows)
+        if: runner.os == 'Windows' && matrix.arts == 'yes'
+        shell: msys2 {0}
         run: |
           cd cmake-build
-          make -j2 -C 3rdparty
-          make -j2 arts
-          make -j1 pyarts_cpp
-          make -j2 -C doc/uguide
-          make -j2 -C doc/doxygen
-          make -j2 pyarts_docs
+          cmake --build . -j2 --target 3rdparty/all
+          cmake --build . -j2 --target arts
+          cmake --build . -j1 --target pyarts_cpp
+          cmake --build . -j2 --target src/all
+
+      - name: Docs (Linux / macOS / Windows)
+        if: (runner.os == 'Linux' || runner.os == 'macOS' || runner.os == 'Windows') && matrix.doc == 'yes'
+        run: |
+          cd cmake-build
+          cmake --build . -j2 --target 3rdparty/all
+          cmake --build . -j2 --target arts
+          cmake --build . -j1 --target pyarts_cpp
+          cmake --build . -j2 --target doc/uguide/all
+          cmake --build . -j2 --target doc/doxygen/all
+          cmake --build . -j2 --target pyarts_docs
 
       - name: Check (Linux / macOS)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
         run: |
           cd cmake-build
-          make check
+          cmake --build . -j1 --target check
 
-      - name: Check Python (Linux / macOS)
-        if: matrix.check == 'yes'
+      - name: Check (Windows)
+        if: runner.os == 'Windows' && matrix.check == 'yes'
+        shell: msys2 {0}
         run: |
           cd cmake-build
-          make check-python
+          cmake --build . -j1 --target check
+
+      - name: Check Python (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          cmake --build . -j1 --target check-python
+
+      - name: Check Python (Windows)
+        if: (runner.os == 'Windows') && matrix.check == 'yes'
+        shell: msys2 {0}
+        run: |
+          cd cmake-build
+          cmake --build . -j1 --target check-python
 
