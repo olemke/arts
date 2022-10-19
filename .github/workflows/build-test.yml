@@ -92,7 +92,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-gcc-11
-            os: macos-latest
+            os: macos-12
             compiler: gcc
             version: "11"
             doc: "no"
@@ -105,7 +105,7 @@ jobs:
             cmakeflags: "-DRELEASE_O2=1"
 
           - name: macos-clang-14
-            os: macos-latest
+            os: macos-12
             compiler: clang
             version: "14"
             doc: "no"
