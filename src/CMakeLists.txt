@@ -27,8 +27,9 @@ set (ALL_ARTS_LIBRARIES
   matpack
   cdisort
   species
+  scattering
   )
-  
+
 if (ENABLE_GUI)
   list(PREPEND ALL_ARTS_LIBRARIES artsgui)
 endif()
@@ -694,3 +695,5 @@ target_link_libraries(test_eigen PUBLIC matpack)
 
 add_executable(run_partfun run_partfun.cc)
 target_link_libraries(run_partfun PRIVATE artscore)
+
+add_subdirectory(scattering)
