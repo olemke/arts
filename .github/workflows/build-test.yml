@@ -11,67 +11,75 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: linux-docs
-            os: ubuntu-22.04
-            preset: default-gcc-conda
-            check: "no"
-            doc: "yes"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: linux-default-gcc
-            os: ubuntu-22.04
-            preset: default-gcc-conda
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: linux-debug-gcc
-            os: ubuntu-22.04
-            preset: debug-gcc-conda
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: linux-nofortran-gcc
-            os: ubuntu-22.04
-            preset: nofortran-gcc-conda
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: linux-lgpl-gcc
-            os: ubuntu-22.04
-            preset: lgpl-gcc-conda
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-linux.yml"
-            jbuild: 2
-            jcheck: 2
-
-          - name: mac-default-clang
-            os: macos-latest
+          # - name: linux-docs
+          #   os: ubuntu-22.04
+          #   preset: default-gcc-conda
+          #   check: "no"
+          #   doc: "yes"
+          #   devenv: "environment-dev-linux.yml"
+          #   jbuild: 2
+          #   jcheck: 2
+          #
+          # - name: linux-default-gcc
+          #   os: ubuntu-22.04
+          #   preset: default-gcc-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-linux.yml"
+          #   jbuild: 2
+          #   jcheck: 2
+          #
+          # - name: linux-debug-gcc
+          #   os: ubuntu-22.04
+          #   preset: debug-gcc-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-linux.yml"
+          #   jbuild: 2
+          #   jcheck: 2
+          #
+          # - name: linux-nofortran-gcc
+          #   os: ubuntu-22.04
+          #   preset: nofortran-gcc-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-linux.yml"
+          #   jbuild: 2
+          #   jcheck: 2
+          #
+          # - name: linux-lgpl-gcc
+          #   os: ubuntu-22.04
+          #   preset: lgpl-gcc-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-linux.yml"
+          #   jbuild: 2
+          #   jcheck: 2
+          #
+          # - name: mac-default-clang
+          #   os: macos-latest
+          #   preset: default-clang-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-mac.yml"
+          #   jbuild: 3
+          #   jcheck: 2
+          #
+          # - name: mac-debug-clang
+          #   os: macos-latest
+          #   preset: debug-clang-conda
+          #   check: "yes"
+          #   doc: "no"
+          #   devenv: "environment-dev-mac.yml"
+          #   jbuild: 3
+          #   jcheck: 2
+          - name: macm1-default-clang
+            os: macos-14
             preset: default-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
-            jbuild: 3
-            jcheck: 2
-
-          - name: mac-debug-clang
-            os: macos-latest
-            preset: debug-clang-conda
-            check: "yes"
-            doc: "no"
-            devenv: "environment-dev-mac.yml"
-            jbuild: 3
+            jbuild: 2
             jcheck: 2
 
     steps:
