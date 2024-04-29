@@ -10,6 +10,9 @@
 #ifndef m_xml_h
 #define m_xml_h
 
+
+#include "config.h"
+
 #ifdef ENABLE_MPI
 #include "mpi.h"
 #endif
