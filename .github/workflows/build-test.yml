@@ -37,7 +37,7 @@ jobs:
             pyarts: "yes"
             check: "yes"
             doc: "no"
-            devenv: "environment-dev-mac.yml"
+            devenv: "environment-dev-linux-clang.yml"
             jbuild: 4
             jcheck: 2
 
