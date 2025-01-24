@@ -19,7 +19,7 @@ print(os.environ.get("ARTS_DATA_PATH"))
 
 import pyarts
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
@@ -100,15 +100,15 @@ ws.ray_path_point # No particular POSLOS
 ws.propagation_matrix_agendaExecute()
 
 # Plot the absorption of this example
-plt.figure(1)
-plt.clf()
-plt.plot(
-    1e9 * pyarts.arts.convert.freq2wavelen(ws.frequency_grid.value),
-    ws.propagation_matrix[:, 0],
-)
-plt.xlabel("Wavelength [nm]")
-plt.ylabel("Absorption [1/m]")
-plt.title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
+# plt.figure(1)
+# plt.clf()
+# plt.plot(
+#     1e9 * pyarts.arts.convert.freq2wavelen(ws.frequency_grid.value),
+#     ws.propagation_matrix[:, 0],
+# )
+# plt.xlabel("Wavelength [nm]")
+# plt.ylabel("Absorption [1/m]")
+# plt.title("O2-CIA-O2 absorption from examples/arts-cat-data/cia/cia.py")
 
 """
 That's it!  You are done and have reached the end of this example.  Everything
