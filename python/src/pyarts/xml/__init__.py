@@ -80,8 +80,27 @@ def _get_arts_type_from_file(filename):
             event, elem = get_next_tag(context)
             while elem.tag == "Array":
                 tag += "ArrayOf"
-                event, elem = get_next_tag(context)
-            tag += elem.tag
+                # Special case because ArrayOfIndex does not contain inner tags
+                if elem.attrib["type"] != "Index":
+                    event, elem = get_next_tag(context)
+                else:
+                    tag += elem.attrib["type"]
+                    break
+            else:
+                tag += elem.tag
+            if tag.endswith("GriddedField"):
+                tag += elem.attrib["N"]
+            elif tag.endswith("Matpack"):
+                if elem.attrib["rank"] == "1":
+                    typename = "Vector"
+                elif elem.attrib["rank"] == "2":
+                    typename = "Matrix"
+                else:
+                    typename = "Tensor" + elem.attrib["rank"]
+                if "type" in elem.attrib:
+                    typename = elem.attrib["type"] + typename
+
+                tag = tag[: -len("Matpack")] + typename
         except StopIteration:
             raise RuntimeError(f"No ARTS type found in file {filename}")
     return tag
@@ -129,6 +148,8 @@ def load(filename, search_arts_path=True):
 
     artstype = _get_arts_type_from_file(filename)
 
+    if artstype.endswith("Map"):
+        raise RuntimeError("Map type data is not supported by xml.load, use <type>.fromxml instead")
     ret = getattr(arts, artstype)()
     ret.readxml(filename)
     return ret
