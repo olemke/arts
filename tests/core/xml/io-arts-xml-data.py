@@ -5,6 +5,13 @@ import sys
 resave = bool(sys.argv[1] == "save") if len(sys.argv) > 1 else False
 
 
+def recursexmlload(file):
+    try:
+        pyarts.xml.load(file)
+    except Exception as e:
+        return False
+    return True
+
 def recursexml(file):
     for x in dir(pyarts.arts):
         attr = getattr(pyarts.arts, x)
@@ -30,6 +37,9 @@ def recurse(path):
     elif path.endswith(".xml"):
         if not recursexml(path):
             print(f"Failed to read {path}")
+            assert False
+        if not recursexmlload(path):
+            print(f"Failed to load {path}")
             assert False
 
 
