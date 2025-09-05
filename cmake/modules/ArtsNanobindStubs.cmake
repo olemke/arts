@@ -1,5 +1,8 @@
 function (ARTS_ADD_CPP_STUBS)
 
+  if (ENABLE_ASAN)
+    add_custom_target(pyarts_cpp_stub)
+  else()
   foreach (MODULENAME IN LISTS ARGN)
     nanobind_add_stub(
       pyarts_${MODULENAME}_cpp_stub
@@ -23,5 +26,6 @@ function (ARTS_ADD_CPP_STUBS)
     APPEND
     PROPERTY ADDITIONAL_CLEAN_FILES ${ARTS_BINARY_DIR}/python/src/pyarts3/arts
   )
+  endif()
 
 endfunction()
