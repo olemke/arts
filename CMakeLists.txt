@@ -56,6 +56,7 @@ endif()
 # User options (auto-complete and cmake gui works better like this)
 include(CMakeDependentOption)
 option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
+option (ENABLE_ASAN "Turn on address sanitizer" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX23 "Turn on C++23 (Don't use, only for future updates)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
@@ -380,6 +381,18 @@ if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
 endif (WERROR)
 
+########### Address sanitizer ##########
+
+if (ENABLE_ASAN)
+  if (NOT CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    message(FATAL_ERROR "Address sanitizer is only supported with clang")
+  endif()
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+endif()
+
+########### OpenMP ##########
+
 if (OpenMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -388,6 +401,7 @@ endif ()
 set (ARTS_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
 ########### Xcode specific settings ##########
+
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (ARTS_COMPILER "Xcode")
   set (CMAKE_OSX_SYSROOT "")
@@ -521,6 +535,12 @@ if (ENABLE_PCH)
   endif()
 else()
   message (STATUS "Precompiled headers disabled")
+endif()
+
+if (ENABLE_ASAN)
+  message(STATUS "Address sanitizer enabled")
+else()
+  message(STATUS "Address sanitizer disabled")
 endif()
 
 if (IPO_SUPPORTED)

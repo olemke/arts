@@ -178,8 +178,7 @@
       "name": "asan-clang-conda",
       "inherits": "debug-clang-conda",
       "cacheVariables": {
-        "CMAKE_C_FLAGS": "-isystem $env{CONDA_PREFIX}/include -fsanitize=address -fno-omit-frame-pointer",
-        "CMAKE_CXX_FLAGS": "-isystem $env{CONDA_PREFIX}/include -fsanitize=address -fno-omit-frame-pointer"
+        "ENABLE_ASAN": "ON"
       }
     }
   ]
