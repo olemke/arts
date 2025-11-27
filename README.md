@@ -144,7 +144,7 @@ directory:
 
 ```
 cmake --build build --target pyarts
-python3 -m pip install --user -e build/python
+python3 -m pip install --use-pep517 --config-settings editable_mode=compat --user -e build/python
 ```
 
 This will not mess with your system's Python installation.
