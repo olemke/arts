@@ -228,5 +228,17 @@ target_link_libraries(test_vformat PUBLIC artsworkspace)
 add_test(NAME "cpp.fast.test_vformat" COMMAND test_vformat)
 add_dependencies(check-deps test_vformat)
 
+
+# ####
+if (ENABLE_KOKKOS)
+  add_executable(test_kokkos test_kokkos.cc)
+  target_link_libraries(test_kokkos PUBLIC Kokkos::kokkos matpack)
+  target_include_directories(test_kokkos PRIVATE ${Kokkos_INCLUDE_DIRS})
+  target_compile_definitions(test_kokkos PRIVATE ${Kokkos_CXX_FLAGS})
+  # add_test(NAME "cpp.fast.test_kokkos" COMMAND test_kokkos)
+  # add_dependencies(check-deps test_kokkos)
+endif()
+
+
 # ####
 add_subdirectory(scattering)

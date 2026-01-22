@@ -66,6 +66,7 @@ option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (ENABLE_CDISORT "Turn on cdisort" ON)
 option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" ON)
 option (ENABLE_EXAMPLE_PLOTS "Generate plots for examples in sphinx docs" OFF)
+option (ENABLE_KOKKOS "Turn on Kokkos support (experimental)" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
 option (IGNORE_CONDA_PATH "Turn on pathing guard for conda environment" OFF)
 option (NO_ASSERT "Turn off all asserts" OFF)
@@ -279,7 +280,24 @@ find_package (LAPACK REQUIRED)
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
   include (FindOpenMP)
+  set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Enable Kokkos OpenMP support")
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+
+########## Kokkos support #########
+set(Kokkos_ENABLE_SERIAL ON CACHE BOOL "Enable Kokkos Serial support")
+# set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Enable Kokkos CUDA support")
+# set(Kokkos_ARCH_ADA89 ON CACHE BOOL "Set CUDA arch")
+
+if (ENABLE_KOKKOS)
+  include(FetchContent)
+  FetchContent_Declare(
+    Kokkos
+    URL https://github.com/kokkos/kokkos/archive/refs/tags/4.7.01.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP ON
+  )
+
+  FetchContent_MakeAvailable(Kokkos)
+endif()
 
 ########## FFTW #########
 include(FindFFTW)
