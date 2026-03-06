@@ -1,20 +1,80 @@
 name: ARTS
 
-on: [push, pull_request]
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch:
+    inputs:
+      attempt:
+        description: 'Retry attempt number'
+        required: false
+        default: '1'
 
 jobs:
   prepare:
     name: Prepare testdata
     runs-on: ubuntu-latest
     steps:
+      - name: Determine attempt number
+        id: attempt
+        run: |
+          ATT=${{ github.event.inputs.attempt }}
+          if [ -z "$ATT" ]; then
+            ATT=1
+          fi
+          echo "attempt=$ATT" >> $GITHUB_OUTPUT
+
       - name: Check Runner IP
+        id: check
         run: |
           echo "Runner public IP:"
           curl -s https://api.ipify.org
           echo
           echo
           echo "Test testdata server access:"
-          curl -o /dev/null --no-progress-meter https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt && echo "OK" || echo "FAIL"
+          if curl -o /dev/null --no-progress-meter https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/planets/Earth/afgl/readme.txt; then
+            echo "ok=1" >> $GITHUB_OUTPUT
+            echo "OK"
+          else
+            echo "ok=0" >> $GITHUB_OUTPUT
+            echo "FAIL"
+          fi
+          ATT=${{ github.event.inputs.attempt }}
+          if [ -z "$ATT" ]; then
+            echo "ok=0" >> $GITHUB_OUTPUT
+            echo "INTENTIONAL FAIL"
+          else
+            echo "FAIL ATTEMPT: ${{ github.event.inputs.attempt }}"
+          fi
+
+      - name: Retry workflow on failure
+        if: ${{ steps.check.outputs.ok == '0' && (fromJSON(steps.attempt.outputs.attempt) < 3) }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const attempt = parseInt(process.env.ATTEMPT, 10);
+            const next = attempt + 1;
+            console.log(`Scheduling retry attempt ${next}`);
+            // Choose a ref that exists; pull request events have a \"merge\" ref which
+            // cannot be used for workflow_dispatch.  Prefer the head ref if available.
+            let ref = context.ref;
+            if (context.payload.pull_request && context.payload.pull_request.head && context.payload.pull_request.head.ref) {
+              ref = context.payload.pull_request.head.ref;
+            }
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'arts_ci.yml',
+              ref: ref,
+              inputs: { attempt: next.toString() }
+            });
+        env:
+          ATTEMPT: ${{ steps.attempt.outputs.attempt }}
+
+      - name: Fail job if IP check failed
+        if: steps.check.outputs.ok == '0'
+        run: exit 1
 
       - uses: actions/checkout@v4
         with:
