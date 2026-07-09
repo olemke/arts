@@ -9,14 +9,13 @@ dependencies:
         - lark-parser
         - libboost-devel
         - libcxx
-        - llvm-openmp < 21
         - matplotlib<3.12
         - nanobind=2.9
         - nbsphinx
         - netcdf4
         - ninja
         - numpy>=2
-        - openblas
+        - openblas=*=*openmp*
         - pip
         - pkg-config
         - python-build
