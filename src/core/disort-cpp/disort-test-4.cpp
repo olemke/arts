@@ -1,3 +1,4 @@
+#include <arts_omp.h>
 #include <disort-test.h>
 
 const Vector Leg_coeffs_ALL{
@@ -860,6 +861,7 @@ void test_4c() try {
 }
 
 int main() try {
+  arts_omp_set_num_threads(1);
   std::cout << std::setprecision(16);
   test_4a();
   test_4b();
